@@ -5,16 +5,20 @@ A Claude Code plugin marketplace hosting the `warden` plugin — a ticket-patrol
 ## Language
 
 **Warden**:
-The patrolling agent itself — one long-lived session that walks rounds until stood down.
+The patrolling agent identity — one session per round, walking rounds until stood down.
 _Avoid_: bot, daemon, watcher
 
 **Round**:
-One full pass of the warden's duties: claim & dispatch, babysit, arm the next round.
+One full pass of the warden's duties, run in its own session: claim & dispatch, babysit, arm the next round.
 _Avoid_: iteration, cycle, loop
 
 **Patrol**:
-The warden's lifetime from summons to stand-down; a sequence of rounds carrying the summons' args throughout.
+The warden's lifetime from summons to stand-down; a sequence of rounds carrying the summons' args throughout. Between rounds the patrol exists only as its armed Routine.
 _Avoid_: session, run
+
+**Arm**:
+Create the one-shot Routine that fires the next round in a fresh session — the patrol's only between-round state.
+_Avoid_: schedule, wake, loop
 
 **Ticket**:
 Anything carrying the agent-ready triage role: an issue, or an external PR when the tracker treats PRs as a request surface.
