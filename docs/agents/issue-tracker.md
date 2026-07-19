@@ -35,6 +35,13 @@ Create a GitHub issue.
 
 Run `gh issue view <number> --comments`.
 
+## Ready gate
+
+**Ready gate: merge.** _(What the warden does when a change request
+goes green: `human` = label ready-for-human, leave draft; `ready` =
+mark ready for review; `merge` = merge, delete branch, close ticket.
+`/warden:patrol` reads this flag.)_
+
 ## Wayfinding operations
 
 Used by `/wayfinder`. The **map** is a single issue with **child** issues as tickets.
