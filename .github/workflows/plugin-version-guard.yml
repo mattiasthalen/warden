@@ -1,0 +1,32 @@
+name: Plugin version guard
+
+on:
+  pull_request:
+    paths:
+      - "plugins/warden/**"
+
+jobs:
+  require-version-bump:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Require semver bump when plugin files change
+        run: |
+          set -euo pipefail
+          MANIFEST="plugins/warden/.claude-plugin/plugin.json"
+
+          BASE_VERSION="$(git show "origin/${{ github.base_ref }}:${MANIFEST}" | jq -r .version)"
+          HEAD_VERSION="$(jq -r .version "${MANIFEST}")"
+
+          echo "base: ${BASE_VERSION}  head: ${HEAD_VERSION}"
+
+          if [ "$(printf '%s\n%s\n' "${BASE_VERSION}" "${HEAD_VERSION}" | sort -V | tail -n1)" != "${HEAD_VERSION}" ] \
+            || [ "${BASE_VERSION}" = "${HEAD_VERSION}" ]; then
+            echo "::error file=${MANIFEST}::Files under plugins/warden/ changed, but the plugin version" \
+              "(${HEAD_VERSION}) is not strictly greater than the base branch's (${BASE_VERSION})." \
+              "Bump the version in ${MANIFEST} — installed plugins are cached by version."
+            exit 1
+          fi
