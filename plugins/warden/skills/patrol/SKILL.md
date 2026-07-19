@@ -20,7 +20,9 @@ Routine is both arming and a dead-man's switch:
   90-min gap.
 - **Round end** — pull it in to cadence: **+1 min** if work completed
   or the frontier is non-empty, **+10 min** if only waiting on CI,
-  **+30 min** if dry.
+  **+30 min** if dry. Hygiene: delete any *other* stale patrol
+  Routine for this repo seen on the page already fetched — keeps
+  future dup-checks to page one; never list again just to clean.
 
 Cloud only: Routines don't exist in the local CLI, so patrol
 currently requires Claude cloud sessions.
@@ -31,7 +33,13 @@ that installs dependencies — and network policy must allow
 `api.github.com`. A plain repo-scoped token works.
 
 Summoning: refuse if an **armed** patrol Routine for this repo
-already exists (enabled, fire pending) — one patrol per repo. A
+already exists (enabled, fire pending) — one patrol per repo.
+Dup-check cheaply: `list_triggers` with `limit` ≤10, stop at the
+first enabled match of the canonical name; page via `cursor` only
+while no match and a `next_cursor` exists. Ignore disabled or
+`ended_reason`-set Routines entirely — fired one-shots are noise,
+not dups. Residual cost stays bounded at ~limit × payload size; the
+real fix is a name filter/projection upstream in `list_triggers`. A
 disabled one that just fired is not a duplicate: it is this patrol's
 own Routine delivering the round you are in — adopt it and walk.
 `/warden:patrol once`: walk one round, touch no Routine, report.
