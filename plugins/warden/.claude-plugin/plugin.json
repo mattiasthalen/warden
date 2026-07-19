@@ -1,6 +1,6 @@
 {
   "name": "warden",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "Ticket-patrolling agent — walks rounds over the frontier: claims agent-ready tickets, dispatches implementers, babysits CI, applies the ready gate.",
   "author": {
     "name": "Mattias Thalén",
