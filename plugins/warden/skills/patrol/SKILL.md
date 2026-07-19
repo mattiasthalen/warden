@@ -13,9 +13,11 @@ args this patrol was summoned with), created with
 `create_new_session_on_fire` + `run_once_at`. Rescheduling that one
 Routine is both arming and a dead-man's switch:
 
-- **Round start** — push its fire time to +90 min. A crash mid-round
-  leaves this safety fire armed; the patrol self-heals with at worst
-  one 90-min gap.
+- **Round start** — push its fire time to +90 min. A fired one-shot
+  Routine disables itself; setting a new `run_once_at` re-arms that
+  same Routine — never create a second. A crash mid-round leaves
+  this safety fire armed; the patrol self-heals with at worst one
+  90-min gap.
 - **Round end** — pull it in to cadence: **+1 min** if work completed
   or the frontier is non-empty, **+10 min** if only waiting on CI,
   **+30 min** if dry.
@@ -23,8 +25,10 @@ Routine is both arming and a dead-man's switch:
 Cloud only: Routines don't exist in the local CLI, so patrol
 currently requires Claude cloud sessions.
 
-Summoning: refuse if a patrol Routine for this repo already exists —
-one patrol per repo.
+Summoning: refuse if an **armed** patrol Routine for this repo
+already exists (enabled, fire pending) — one patrol per repo. A
+disabled one that just fired is not a duplicate: it is this patrol's
+own Routine delivering the round you are in — adopt it and walk.
 `/warden:patrol once`: walk one round, touch no Routine, report.
 `/warden:patrol merge`: override the ready gate to `merge` for this
 patrol only — the flag in issue-tracker.md is untouched. Args combine.
