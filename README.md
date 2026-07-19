@@ -1,4 +1,4 @@
-# Warden
+![Warden](docs/assets/hero.png)
 
 A ticket-patrolling agent for Claude Code. Summoned with `/warden:patrol`, the warden walks **rounds** over your issue tracker's frontier: it claims agent-ready tickets, dispatches implementer subagents into fresh worktrees, babysits the resulting draft change requests through CI, and applies your repo's **ready gate** when they go green — then arms the next round and waits.
 
