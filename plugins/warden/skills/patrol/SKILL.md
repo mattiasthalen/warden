@@ -30,7 +30,10 @@ currently requires Claude cloud sessions.
 The frontier script (below) needs `GH_TOKEN`: the patrol
 environment mints it via its setup script — the same mechanism
 that installs dependencies — and network policy must allow
-`api.github.com`. A plain repo-scoped token works.
+`api.github.com`. A plain repo-scoped token works. If the
+environment rewrites git remotes (proxies, mirrors) so the origin
+URL no longer names GitHub, set `GH_REPO=<owner>/<repo>` — the
+script prefers it over the remote.
 
 Rounds must be zero-prompt: `warden:setup` commits standing allow
 rules to the repo's `.claude/settings.json` covering the Routine

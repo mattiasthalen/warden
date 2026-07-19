@@ -7,8 +7,9 @@
 # or an assignee are dropped. Intermediate payloads never leave the
 # pipe; output is the projection only.
 #
-# Requires: curl, jq, git (repo inferred from the origin remote), and
-# GH_TOKEN or GITHUB_TOKEN (a plain repo-scoped token works).
+# Requires: curl, jq, git, and GH_TOKEN or GITHUB_TOKEN (a plain
+# repo-scoped token works). The repo is taken from $1 or GH_REPO
+# (<owner>/<repo>) if set, else inferred from the origin remote.
 set -euo pipefail
 
 TOKEN="${GH_TOKEN:-${GITHUB_TOKEN:-}}"
@@ -20,10 +21,18 @@ fi
 READY_LABEL="${WARDEN_READY_LABEL:-ready-for-agent}"
 MAP_LABEL="${WARDEN_MAP_LABEL:-wayfinder:map}"
 
-remote="$(git remote get-url origin 2>/dev/null || true)"
-repo="$(printf '%s\n' "$remote" | sed -nE 's#.*github\.com[:/]([^/]+/[^/[:space:]]+)$#\1#p' | sed 's/\.git$//')"
+# <owner>/<repo>: an explicit override ($1 or GH_REPO) wins; otherwise
+# parse the origin remote URL (https, scp-like ssh, or ssh://, with
+# optional userinfo).
+repo="${1:-${GH_REPO:-}}"
 if [ -z "$repo" ]; then
-  echo "frontier.sh: could not infer <owner>/<repo> from git remote -v (origin: '${remote:-none}')" >&2
+  remote="$(git remote get-url origin 2>/dev/null || true)"
+  repo="$(printf '%s\n' "$remote" \
+    | sed -nE 's#^((https?|ssh|git)://)?([^@/[:space:]]+@)?github\.com[:/]([^/[:space:]]+/[^/[:space:]]+)$#\4#p' \
+    | sed 's/\.git$//')"
+fi
+if [ -z "$repo" ]; then
+  echo "frontier.sh: could not infer <owner>/<repo> from the origin remote ('${remote:-none}'); set GH_REPO=<owner>/<repo> (or pass it as the first argument)" >&2
   exit 1
 fi
 
