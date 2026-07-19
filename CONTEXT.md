@@ -21,7 +21,7 @@ Anything carrying the agent-ready triage role: an issue, or an external PR when 
 _Avoid_: task, item
 
 **Frontier**:
-The set of open, agent-ready, unblocked, unclaimed tickets, in map order (or oldest first without a map).
+The set of open, agent-ready, unblocked, unclaimed tickets: mapped tickets first (each map in map order, maps oldest-first), then unmapped tickets oldest-first. A ticket appearing on multiple maps counts once, at its first position.
 _Avoid_: queue, backlog
 
 **Claim**:
