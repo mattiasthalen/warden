@@ -1,5 +1,9 @@
 # Warden
 
+## Plugin versioning
+
+Any change under `plugins/warden/` must bump the `version` in `plugins/warden/.claude-plugin/plugin.json` (semver, by impact) — installed plugins are cached by version, so an unbumped version never reaches users. CI enforces this on PRs.
+
 ## Agent skills
 
 ### Issue tracker
