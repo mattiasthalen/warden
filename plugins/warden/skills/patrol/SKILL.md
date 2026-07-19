@@ -32,6 +32,14 @@ environment mints it via its setup script — the same mechanism
 that installs dependencies — and network policy must allow
 `api.github.com`. A plain repo-scoped token works.
 
+Rounds must be zero-prompt: `warden:setup` commits standing allow
+rules to the repo's `.claude/settings.json` covering the Routine
+tools, the frontier script, git operations, and the tracker/forge
+writes. At summons, check the rules are present (the file exists and
+allows the claude-code-remote trigger tools); if missing, say so and
+point at `warden:setup` step 4 instead of letting a later round
+stall silently on a permission prompt.
+
 Summoning: refuse if an **armed** patrol Routine for this repo
 already exists (enabled, fire pending) — one patrol per repo.
 Dup-check cheaply: `list_triggers` with `limit` ≤10, stop at the
