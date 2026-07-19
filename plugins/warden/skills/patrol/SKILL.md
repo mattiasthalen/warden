@@ -25,6 +25,11 @@ Routine is both arming and a dead-man's switch:
 Cloud only: Routines don't exist in the local CLI, so patrol
 currently requires Claude cloud sessions.
 
+The frontier script (below) needs `GH_TOKEN`: the patrol
+environment mints it via its setup script — the same mechanism
+that installs dependencies — and network policy must allow
+`api.github.com`. A plain repo-scoped token works.
+
 Summoning: refuse if an **armed** patrol Routine for this repo
 already exists (enabled, fire pending) — one patrol per repo. A
 disabled one that just fired is not a duplicate: it is this patrol's
@@ -62,8 +67,12 @@ draft CR before dispatching) — release the claim back to the
 frontier. No timestamps, no timeouts; the orphan is inferred, not
 remembered.
 
-Then query the frontier (per issue-tracker.md). For each, in
-frontier order:
+Then query the frontier: run
+`${CLAUDE_PLUGIN_ROOT}/scripts/frontier.sh` from the repo root —
+one Bash result, one JSON line per ticket (number, title, labels,
+assignees, open-blocker count), already partitioned and ordered
+per issue-tracker.md's frontier rules. For each, in frontier
+order:
 
 **Issue ticket** — there's a spec; build it:
 1. Claim it (the claim removes it from the frontier — claim first)
@@ -110,11 +119,14 @@ me and not carrying the needs-info or ready-for-human roles. For each:
 
 A round is cheap only if its reads are. Rules, in force every round:
 
-- **Every tracker read is a projection** — the frontier query is
-  numbers, titles, labels plus whatever fields the frontier filter
-  needs; all other reads take the minimal field set too (per
-  issue-tracker.md; drop bodies, comments, avatars, API URLs).
-  Read a ticket's body once, at claim time — never in the listing.
+- **Every tracker read is a projection** — the frontier, and any
+  listing or scanning pass, goes through
+  `${CLAUDE_PLUGIN_ROOT}/scripts/frontier.sh`; intermediate
+  payloads stay in the pipe. Never read the frontier via GitHub
+  MCP `search_issues`/`list_issues` — they return full bodies
+  (~25k chars a round). MCP remains the write path (labels,
+  comments, PRs) and the single-ticket body read. Read a ticket's
+  body once, at claim time — never in the listing.
 - **One CI check per in-flight CR per round.** Never poll within a
   round; running CI is the next round's problem (step 2 already says
   so — this is the enforcement).
