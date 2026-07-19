@@ -2,6 +2,8 @@
 
 Issues and PRDs for this repo live as GitHub issues. Use the `gh` CLI for all operations.
 
+When `gh` isn't installed (e.g. cloud sandboxes) and the available tooling can't express an operation, hit the GitHub REST API directly — `curl` with the `GH_TOKEN`/`GITHUB_TOKEN` env var (`-H "Authorization: Bearer $GH_TOKEN"` against `api.github.com`). Every `gh api` call in this doc translates 1:1. Do not downgrade to a body-text fallback (e.g. a `Blocked by:` line) without first trying REST.
+
 ## Conventions
 
 - **Create an issue**: `gh issue create --title "..." --body "..."`. Use a heredoc for multi-line bodies.
