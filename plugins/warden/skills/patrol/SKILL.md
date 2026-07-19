@@ -72,6 +72,26 @@ me and not carrying the needs-info or ready-for-human roles. For each:
   are only visible by checking — the forge pushes nothing — which is
   why this step runs every round.
 
+## Context discipline
+
+A round is cheap only if its reads are. Rules, in force every round:
+
+- **Every tracker read is a projection** — the frontier query is
+  numbers, titles, labels plus whatever fields the frontier filter
+  needs; all other reads take the minimal field set too (per
+  issue-tracker.md; drop bodies, comments, avatars, API URLs).
+  Read a ticket's body once, at claim time — never in the listing.
+- **One CI check per in-flight CR per round.** Never poll within a
+  round; running CI is the next round's problem (step 2 already says
+  so — this is the enforcement).
+- **Never subscribe to CR activity** (`subscribe_pr_activity` or the
+  forge's equivalent). Subagent completions and the armed wakeup
+  already cover re-entry; the subscription only echoes boilerplate
+  into context.
+- **Batch independent reads into one turn** — all ticket reads
+  together, all CR/CI checks together. One tool call per turn is the
+  expensive way to walk a frontier.
+
 ## Round complete when
 
 Every agent-ready frontier ticket is claimed-and-dispatched, every
