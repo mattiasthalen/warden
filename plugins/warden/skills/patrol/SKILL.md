@@ -37,9 +37,7 @@ The **ready gate** flag in issue-tracker.md decides what green earns:
 
 ## 1. Claim & dispatch
 
-Query the frontier (per issue-tracker.md); keep tickets with the
-agent-ready role. Include external PRs carrying that role when the
-tracker's "PRs as a request surface" flag is yes. For each, in
+Query the frontier (per issue-tracker.md). For each, in
 frontier order:
 
 **Issue ticket** — there's a spec; build it:
