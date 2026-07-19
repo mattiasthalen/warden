@@ -17,7 +17,7 @@ The warden's lifetime from summons to stand-down; a sequence of rounds carrying 
 _Avoid_: session, run
 
 **Arm**:
-Create the one-shot Routine that fires the next round in a fresh session — the patrol's only between-round state.
+Set the patrol's one-shot Routine to fire the next round in a fresh session — created at summons, rescheduled every round thereafter (round start pushes the fire time out as a safety net, round end pulls it in to cadence); the patrol's only between-round state.
 _Avoid_: schedule, wake, loop
 
 **Ticket**:
