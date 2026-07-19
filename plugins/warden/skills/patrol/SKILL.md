@@ -72,16 +72,19 @@ The **ready gate** flag in issue-tracker.md decides what green earns:
 - `human` (default) — label the draft CR with the ready-for-human
   role, push-notify with the link, leave it draft. The human reviews,
   promotes, merges.
-- `ready` — mark the CR ready for review; a human still merges.
-- `merge` — mark ready and merge; delete branch, remove worktree,
-  close the linked ticket if the merge didn't. If the forge refuses
-  the merge (e.g. branch protection requires review), fall back to
-  `human` behavior and note the refusal on the CR. Cleanup is
-  non-fatal: if branch deletion is refused, try once, note it
-  briefly on the CR, and move on — never retry through alternate
-  APIs in the same round. A failed worktree removal is likewise
-  noted and skipped. Merge and ticket-close outcomes never depend
-  on cleanup succeeding — the ticket still closes.
+- `ready` — flip the draft to ready for review (that flip is the
+  whole action); a human still merges.
+- `merge` — flip the draft to ready for review, then merge, as two
+  ordered steps — a merge attempted on a draft fails at the forge.
+  Then delete branch, remove worktree, close the linked ticket if
+  the merge didn't. If the forge refuses the merge (e.g. branch
+  protection requires review), fall back to `human` behavior and
+  note the refusal on the CR. Cleanup is non-fatal: if branch
+  deletion is refused, try once, note it briefly on the CR, and
+  move on — never retry through alternate APIs in the same round. A
+  failed worktree removal is likewise noted and skipped. Merge and
+  ticket-close outcomes never depend on cleanup succeeding — the
+  ticket still closes.
 
 ## 1. Claim & dispatch
 
