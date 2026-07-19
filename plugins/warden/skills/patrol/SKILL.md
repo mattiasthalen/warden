@@ -75,8 +75,13 @@ The **ready gate** flag in issue-tracker.md decides what green earns:
 - `ready` — mark the CR ready for review; a human still merges.
 - `merge` — mark ready and merge; delete branch, remove worktree,
   close the linked ticket if the merge didn't. If the forge refuses
-  (e.g. branch protection requires review), fall back to `human`
-  behavior and note the refusal on the CR.
+  the merge (e.g. branch protection requires review), fall back to
+  `human` behavior and note the refusal on the CR. Cleanup is
+  non-fatal: if branch deletion is refused, try once, note it
+  briefly on the CR, and move on — never retry through alternate
+  APIs in the same round. A failed worktree removal is likewise
+  noted and skipped. Merge and ticket-close outcomes never depend
+  on cleanup succeeding — the ticket still closes.
 
 ## 1. Claim & dispatch
 
