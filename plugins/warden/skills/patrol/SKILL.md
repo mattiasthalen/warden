@@ -13,7 +13,13 @@ args this patrol was summoned with), created with
 `create_new_session_on_fire` + `run_once_at`. Rescheduling that one
 Routine is both arming and a dead-man's switch:
 
-- **Round start** — push its fire time to +90 min. A fired one-shot
+- **Round start** — pre-flight the standing rules: each round is a
+  fresh session, so first check `.claude/settings.json` exists and
+  allows the claude-code-remote trigger tools. If missing, tell the
+  user to run `warden:setup` step 4 — then still attempt the re-arm
+  (the dead-man fire is the safety net), never stall silently on a
+  permission prompt. Then push its fire time to +90 min. A fired
+  one-shot
   Routine disables itself; setting a new `run_once_at` re-arms that
   same Routine — never create a second. A crash mid-round leaves
   this safety fire armed; the patrol self-heals with at worst one
@@ -41,7 +47,9 @@ tools, the frontier script, git operations, and the tracker/forge
 writes. At summons, check the rules are present (the file exists and
 allows the claude-code-remote trigger tools); if missing, say so and
 point at `warden:setup` step 4 instead of letting a later round
-stall silently on a permission prompt.
+stall silently on a permission prompt. The same check re-runs as the
+round-start pre-flight above — summons catches it early, the
+pre-flight catches environments that drifted since.
 
 Summoning: refuse if an **armed** patrol Routine for this repo
 already exists (enabled, fire pending) — one patrol per repo.
