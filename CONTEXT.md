@@ -16,6 +16,10 @@ _Avoid_: iteration, cycle, loop
 The warden's lifetime from summons to stand-down; a sequence of rounds carrying the summons' args throughout. Between rounds the patrol exists only as its armed Routine.
 _Avoid_: session, run
 
+**Summons**:
+The hiring act — validate and arm the patrol's Routine for its first round; walks no round itself.
+_Avoid_: hire, start, launch
+
 **Arm**:
 Set the patrol's one-shot Routine to fire the next round in a fresh session — created at summons, rescheduled every round thereafter (round start pushes the fire time out as a safety net, round end pulls it in to cadence); the patrol's only between-round state.
 _Avoid_: schedule, wake, loop
