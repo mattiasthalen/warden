@@ -57,11 +57,38 @@ Create the patrol's one Routine with `create_trigger`:
 
 - name: `warden:patrol <owner>/<repo>` (the canonical name the
   dup-check and stand-down look for)
-- prompt: `/warden:patrol <args>` — the pass-through args from
-  step 1, so every round carries the summons' args
+- prompt — two parts, exactly:
+  1. `/warden:patrol <owner>/<repo> [args]` — the resolved repo from
+     step 1 plus the pass-through args, so every round carries the
+     summons' args
+  2. the fallback clause, verbatim on the next line:
+     `If /warden:patrol is an unknown command, read the newest
+     ~/.claude/plugins/cache/*/warden/*/skills/patrol/SKILL.md and
+     follow it for <owner>/<repo> with the same args.`
+     Fresh sessions can hit a registry race — a plugin installed by
+     a SessionStart hook registers its slash commands only for the
+     *next* session, and rounds are always first sessions in fresh
+     containers. The fallback lets the round find the skill on disk
+     and walk anyway.
 - `create_new_session_on_fire: true` — each round in a fresh session
 - `run_once_at`: now + 1 minute
 
-Then report: the warden is hired, name the Routine, and say when the
-first round fires. Stand-down is the same Routine deleted — from any
-session, or the claude.ai Routines UI.
+## 4. Finish the Routine in the claude.ai UI — required
+
+`create_trigger` cannot attach a repository source or MCP
+connectors — Routines it creates fire sessions with **no repo
+checkout** and no connector tools. Until the maintainer finishes the
+Routine in the claude.ai UI, every round fires into an empty session
+with nothing to walk.
+
+So the summons' final report must carry this as an explicit
+**required step**, not an optional note: open the Routine in the
+claude.ai Routines UI ("Edit routine"), attach the repository
+(the "Select a repository" field will be empty), and attach any
+connectors the rounds need — before the first round fires, or
+re-arm after.
+
+Then report: the warden is hired, name the Routine, say when the
+first round fires, and state the finish-in-UI step above. Stand-down
+is the same Routine deleted — from any session, or the claude.ai
+Routines UI.

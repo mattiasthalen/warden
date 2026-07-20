@@ -9,7 +9,11 @@ disable-model-invocation: true
 The warden walks **rounds**, each in a fresh session. Between rounds
 the patrol exists only as one one-shot Routine — canonical name
 `warden:patrol <owner>/<repo>`, prompt
-`/warden:patrol <owner>/<repo> [other args]` — created at summons
+`/warden:patrol <owner>/<repo> [other args]` followed by a fallback
+clause ("If /warden:patrol is an unknown command, read the newest
+`~/.claude/plugins/cache/*/warden/*/skills/patrol/SKILL.md` and
+follow it…") that lets a fresh session locate this skill on disk
+when the slash command hasn't registered yet — created at summons
 (`/warden:summon`), never here: rounds only reschedule it. The repo
 is baked in at summons, always explicit, never bare `<args>`: each
 round fires as a fresh session that may have no clone to infer a

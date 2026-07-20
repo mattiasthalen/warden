@@ -16,6 +16,8 @@ claude plugin install warden@mattiasthalen
 
 (Skipping the first step is a soft failure — the install completes and Warden reports `dependency-unsatisfied` with the exact command to run.)
 
+**Cloud environments: install from the environment's setup script, not a SessionStart hook.** The setup script runs at container boot, before any session's command registry is built, so `/warden:*` commands resolve in first sessions. A SessionStart hook runs *after* the registry is built — hook-installed plugins don't register their slash commands until the *next* session in the same container, and patrol rounds always fire as first sessions in fresh containers, so their `/warden:patrol` prompt would never resolve.
+
 ## Setup
 
 In each repo you want patrolled, run `/warden:setup`. It runs Matt's setup for the base config (issue tracker, triage labels, domain docs) if the repo doesn't have it yet, then asks one question — what a green change request earns (`human` / `ready` / `merge`) — and writes the ready gate and frontier definition into `docs/agents/issue-tracker.md`.
