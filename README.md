@@ -22,7 +22,8 @@ In each repo you want patrolled, run `/warden:setup`. It runs Matt's setup for t
 
 ## Use
 
-- `/warden:patrol` — patrol until told to stand down
+- `/warden:patrol` — patrol until told to stand down (repo inferred from the current clone's origin remote)
+- `/warden:patrol <owner>/<repo>` — patrol that repo explicitly; required when summoning outside a clone
 - `/warden:patrol once` — walk one round, report, stop
 - `/warden:patrol merge` — override the ready gate to `merge` for this patrol only
 

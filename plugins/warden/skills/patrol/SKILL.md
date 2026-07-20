@@ -8,10 +8,14 @@ disable-model-invocation: true
 
 The warden walks **rounds**, each in a fresh session. Between rounds
 the patrol exists only as one one-shot Routine — canonical name
-`warden:patrol <owner>/<repo>`, prompt `/warden:patrol <args>` (the
-args this patrol was summoned with), created with
-`create_new_session_on_fire` + `run_once_at`. Rescheduling that one
-Routine is both arming and a dead-man's switch:
+`warden:patrol <owner>/<repo>`, prompt
+`/warden:patrol <owner>/<repo> [other args]` — the repo resolved at
+summon time (see Summoning), always explicit, never bare `<args>`:
+each round fires as a fresh session that may have no clone to infer
+a repo from. Non-repo args (`once`, `merge`) pass through unchanged.
+Created with `create_new_session_on_fire` + `run_once_at`.
+Rescheduling that one Routine is both arming and a dead-man's
+switch:
 
 - **Round start** — pre-flight the standing rules: each round is a
   fresh session, so first check `.claude/settings.json` exists and
@@ -21,7 +25,9 @@ Routine is both arming and a dead-man's switch:
   permission prompt. Then push its fire time to +90 min. A fired
   one-shot
   Routine disables itself; setting a new `run_once_at` re-arms that
-  same Routine — never create a second. A crash mid-round leaves
+  same Routine — never create a second, never rewrite its prompt:
+  re-arming touches only the fire time, so the repo-bearing prompt
+  survives every round. A crash mid-round leaves
   this safety fire armed; the patrol self-heals with at worst one
   90-min gap.
 - **Round end** — pull it in to cadence: **+1 min** if work completed
@@ -51,7 +57,13 @@ stall silently on a permission prompt. The same check re-runs as the
 round-start pre-flight above — summons catches it early, the
 pre-flight catches environments that drifted since.
 
-Summoning: refuse if an **armed** patrol Routine for this repo
+Summoning: first resolve the target repo, once — an explicit
+`<owner>/<repo>` arg wins; else infer it from the current clone's
+origin remote (same precedence as `scripts/frontier.sh`). No arg and
+no clone to infer from → refuse with a clear message telling the
+user to pass `<owner>/<repo>` — never arm a Routine that will fail
+on fire. The resolved repo goes explicitly into both the canonical
+name and the prompt. Then refuse if an **armed** patrol Routine for this repo
 already exists (enabled, fire pending) — one patrol per repo.
 Dup-check cheaply: `list_triggers` with `limit` ≤10, stop at the
 first enabled match of the canonical name; page via `cursor` only
