@@ -118,10 +118,11 @@ Then query the frontier: run
 `${CLAUDE_PLUGIN_ROOT}/scripts/frontier.sh` from the repo root —
 one Bash result, one JSON line per ticket (number, title, labels,
 assignees, open-blocker count), already partitioned and ordered
-per issue-tracker.md's frontier rules. For each, in frontier
-order:
+per issue-tracker.md's frontier rules. Work in two passes:
 
-**Issue ticket** — there's a spec; build it:
+**Setup pass** — for each ticket, in frontier order:
+
+*Issue ticket* — there's a spec; build it:
 1. Claim it (the claim removes it from the frontier — claim first)
 2. Worktree on a fresh branch `<bug|feat>/issue-<id>` (type from the
    ticket's labels; default `feat`)
@@ -129,23 +130,31 @@ order:
 4. Unsubscribe the CR (`unsubscribe_pr_activity` or the forge's
    equivalent) — the harness auto-subscribes on CR creation, and
    the subscription only echoes boilerplate into context
-5. Dispatch a subagent: /implement this ticket in that worktree —
-   and wait for it
 
-**External-PR ticket** — there's a diff; judge it, never touch it:
+*External-PR ticket* — there's a diff; judge it, never touch it:
 1. Claim it
-2. Dispatch a subagent: /code-review the PR against its merge-base
-   (Spec axis = the PR's stated intent / linked issue) — and wait
-   for it
-3. Post the review; mechanical fixes go as suggestion blocks the
-   contributor can apply. Apply the needs-info role — waiting on
-   reporter. PR tickets never enter the babysit set.
 
-Dispatch is **synchronous**: the round waits for every subagent it
-dispatched (implement, code-review, fix) before arming and ending.
-Rounds are strictly serialized — a fresh round never sees a running
-subagent, so every CR it encounters is fully pushed and babysit
-judges CI/forge state alone.
+**Dispatch pass** — with every frontier ticket set up, fan out all
+subagents **concurrently**: send every dispatch in a single message
+(same-message subagents run concurrently in the harness), one per
+ticket. Issue ticket: /implement this ticket in its worktree.
+External-PR ticket: /code-review the PR against its merge-base
+(Spec axis = the PR's stated intent / linked issue). The dispatches
+are independent — each ticket has its own worktree and branch — so
+none waits on another. Then **barrier**: wait for every dispatched
+subagent to finish before proceeding.
+
+Once a PR-ticket review subagent returns: post the review;
+mechanical fixes go as suggestion blocks the contributor can apply.
+Apply the needs-info role — waiting on reporter. PR tickets never
+enter the babysit set.
+
+Dispatch keeps ADR-0002's **round-end barrier**: the round waits for
+every subagent it dispatched (implement, code-review, fix) before
+arming and ending — but subagents within the round run concurrently,
+not serialized against each other. Rounds are strictly serialized —
+a fresh round never sees a running subagent, so every CR it
+encounters is fully pushed and babysit judges CI/forge state alone.
 
 ## 2. Babysit in-flight change requests
 
@@ -157,10 +166,14 @@ me and not carrying the needs-info or ready-for-human roles. For each:
   CRs are the human's queue and the warden skips them until the
   human promotes. Keep the ticket's claim under every gate.
 - **CI red** → read the failure. Count prior `patrol: fix attempt N`
-  comments. Fewer than 2: dispatch a fix subagent into the worktree
-  (and wait for it), comment `patrol: fix attempt N+1`. At 2:
-  comment the diagnosis and apply the needs-info role to the ticket
-  — back to human triage.
+  comments. Fewer than 2: dispatch a fix subagent into the worktree,
+  comment `patrol: fix attempt N+1`. At 2: comment the diagnosis and
+  apply the needs-info role to the ticket — back to human triage.
+
+Fix subagents for different CRs are independent — fan them out
+**concurrently**, all dispatches in a single message, then barrier on
+all of them before the round ends. Attempt counting and the
+`patrol: fix attempt N` comment stay per-CR, unchanged.
 - **CI running** → leave it; the next round catches it. CI outcomes
   are only visible by checking — the forge pushes nothing — which is
   why this step runs every round.
@@ -184,14 +197,15 @@ A round is cheap only if its reads are. Rules, in force every round:
   forge's equivalent). The armed Routine already covers re-entry;
   the subscription only echoes boilerplate into context. The harness
   auto-subscribes on CR creation regardless — undo it immediately
-  after each CR is opened (dispatch step 4).
+  after each CR is opened (setup-pass step 4).
 - **Batch independent reads into one turn** — all ticket reads
   together, all CR/CI checks together. One tool call per turn is the
   expensive way to walk a frontier.
 
 ## Round complete when
 
-Every agent-ready frontier ticket is claimed-and-dispatched (and its
-subagent finished), every in-flight change request is gated,
-deferred, or still running — and the Routine is rescheduled to
-cadence (`once`: report instead).
+Every agent-ready frontier ticket is claimed-and-dispatched, every
+in-flight change request is gated, deferred, or still running, and
+**every subagent this round dispatched** (implement, code-review,
+fix) has finished — only then is the Routine rescheduled to cadence
+(`once`: report instead).
