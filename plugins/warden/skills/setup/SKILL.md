@@ -124,4 +124,4 @@ project settings rather than a local override.
 `docs/agents/issue-tracker.md` carries both a ready gate and a
 frontier definition, and `.claude/settings.json` carries the standing
 allow rules. Report the gate's value and that the warden is ready to
-summon with `/warden:patrol`.
+summon with `/warden:summon`.
