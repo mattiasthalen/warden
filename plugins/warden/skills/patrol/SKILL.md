@@ -1,6 +1,6 @@
 ---
 name: patrol
-description: Summon the warden — walk rounds over the frontier until told to stand down. `/warden:patrol once` walks one round.
+description: Walk the warden's rounds over the frontier until told to stand down. `/warden:patrol once` walks one round.
 disable-model-invocation: true
 ---
 
@@ -9,35 +9,42 @@ disable-model-invocation: true
 The warden walks **rounds**, each in a fresh session. Between rounds
 the patrol exists only as one one-shot Routine — canonical name
 `warden:patrol <owner>/<repo>`, prompt
-`/warden:patrol <owner>/<repo> [other args]` — the repo resolved at
-summon time (see Summoning), always explicit, never bare `<args>`:
-each round fires as a fresh session that may have no clone to infer
-a repo from. Non-repo args (`once`, `merge`) pass through unchanged.
-Created with `create_new_session_on_fire` + `run_once_at`.
+`/warden:patrol <owner>/<repo> [other args]` — created at summons
+(`/warden:summon`), never here: rounds only reschedule it. The repo
+is baked in at summons, always explicit, never bare `<args>`: each
+round fires as a fresh session that may have no clone to infer a
+repo from. Non-repo args (`once`, `merge`) pass through unchanged.
 Rescheduling that one Routine is both arming and a dead-man's
 switch:
 
-- **Round start** — pre-flight the standing rules: each round is a
-  fresh session, so first check `.claude/settings.json` exists and
-  allows the claude-code-remote trigger tools. If missing, tell the
-  user to run `warden:setup` step 4 — then still attempt the re-arm
-  (the dead-man fire is the safety net), never stall silently on a
-  permission prompt. Then push its fire time to +90 min. A fired
-  one-shot
-  Routine disables itself; setting a new `run_once_at` re-arms that
-  same Routine — never create a second, never rewrite its prompt:
+- **Round start** — first adopt the patrol's own Routine: look up
+  the canonical name (`list_triggers` with `limit` ≤10, stop at the
+  first match; page via `cursor` only while no match and a
+  `next_cursor` exists). A just-fired **disabled** match is this
+  patrol's own Routine delivering the round you are in — adopt it
+  and walk. No match → refuse and point at `/warden:summon` (or
+  `/warden:patrol once` for a single attended round): a hand-typed
+  patrol never stands in for a summons. Then pre-flight the
+  standing rules: each round is a fresh session, so check
+  `.claude/settings.json` exists and allows the claude-code-remote
+  trigger tools. If missing, tell the user to run `warden:setup`
+  step 4 — then still attempt the re-arm (the dead-man fire is the
+  safety net), never stall silently on a permission prompt. Then
+  push the Routine's fire time to +90 min. A fired one-shot Routine
+  disables itself; setting a new `run_once_at` re-arms that same
+  Routine — never create a second, never rewrite its prompt:
   re-arming touches only the fire time, so the repo-bearing prompt
-  survives every round. A crash mid-round leaves
-  this safety fire armed; the patrol self-heals with at worst one
-  90-min gap.
+  survives every round. A crash mid-round leaves this safety fire
+  armed; the patrol self-heals with at worst one 90-min gap.
 - **Round end** — pull it in to cadence: **+1 min** if work completed
   or the frontier is non-empty, **+10 min** if only waiting on CI,
   **+30 min** if dry. Hygiene: delete any *other* stale patrol
   Routine for this repo seen on the page already fetched — keeps
-  future dup-checks to page one; never list again just to clean.
+  future lookups to page one; never list again just to clean.
 
 Cloud only: Routines don't exist in the local CLI, so patrol
-currently requires Claude cloud sessions.
+currently requires Claude cloud sessions — `/warden:patrol once` is
+the exception, the only mode that works in the local CLI.
 
 The frontier script (below) needs `GH_TOKEN`: the patrol
 environment mints it via its setup script — the same mechanism
@@ -50,30 +57,11 @@ script prefers it over the remote.
 Rounds must be zero-prompt: `warden:setup` commits standing allow
 rules to the repo's `.claude/settings.json` covering the Routine
 tools, the frontier script, git operations, and the tracker/forge
-writes. At summons, check the rules are present (the file exists and
-allows the claude-code-remote trigger tools); if missing, say so and
-point at `warden:setup` step 4 instead of letting a later round
-stall silently on a permission prompt. The same check re-runs as the
-round-start pre-flight above — summons catches it early, the
-pre-flight catches environments that drifted since.
+writes. The summons checks the rules at hiring time; the round-start
+pre-flight above catches environments that drifted since.
 
-Summoning: first resolve the target repo, once — an explicit
-`<owner>/<repo>` arg wins; else infer it from the current clone's
-origin remote (same precedence as `scripts/frontier.sh`). No arg and
-no clone to infer from → refuse with a clear message telling the
-user to pass `<owner>/<repo>` — never arm a Routine that will fail
-on fire. The resolved repo goes explicitly into both the canonical
-name and the prompt. Then refuse if an **armed** patrol Routine for this repo
-already exists (enabled, fire pending) — one patrol per repo.
-Dup-check cheaply: `list_triggers` with `limit` ≤10, stop at the
-first enabled match of the canonical name; page via `cursor` only
-while no match and a `next_cursor` exists. Ignore disabled or
-`ended_reason`-set Routines entirely — fired one-shots are noise,
-not dups. Residual cost stays bounded at ~limit × payload size; the
-real fix is a name filter/projection upstream in `list_triggers`. A
-disabled one that just fired is not a duplicate: it is this patrol's
-own Routine delivering the round you are in — adopt it and walk.
-`/warden:patrol once`: walk one round, touch no Routine, report.
+`/warden:patrol once`: the attended variant — walk one round, touch
+no Routine, report. No Routine is required or looked up.
 `/warden:patrol merge`: override the ready gate to `merge` for this
 patrol only — the flag in issue-tracker.md is untouched. Args combine.
 Stand down when the user says so: delete the named Routine. That
