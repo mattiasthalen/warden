@@ -61,7 +61,8 @@ Create the patrol's one Routine with `create_trigger`:
   1. `/warden:patrol <owner>/<repo> [args]` — the resolved repo from
      step 1 plus the pass-through args, so every round carries the
      summons' args
-  2. the fallback clause, verbatim on the next line:
+  2. the fallback clause on the next line, with `<owner>/<repo>`
+     substituted with the repo resolved in step 1:
      `If /warden:patrol is an unknown command, read the newest
      ~/.claude/plugins/cache/*/warden/*/skills/patrol/SKILL.md and
      follow it for <owner>/<repo> with the same args.`
