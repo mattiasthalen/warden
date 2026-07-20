@@ -114,7 +114,10 @@ order:
 2. Worktree on a fresh branch `<bug|feat>/issue-<id>` (type from the
    ticket's labels; default `feat`)
 3. Push; open a draft change request linking the ticket
-4. Dispatch a subagent: /implement this ticket in that worktree —
+4. Unsubscribe the CR (`unsubscribe_pr_activity` or the forge's
+   equivalent) — the harness auto-subscribes on CR creation, and
+   the subscription only echoes boilerplate into context
+5. Dispatch a subagent: /implement this ticket in that worktree —
    and wait for it
 
 **External-PR ticket** — there's a diff; judge it, never touch it:
@@ -167,7 +170,9 @@ A round is cheap only if its reads are. Rules, in force every round:
   so — this is the enforcement).
 - **Never subscribe to CR activity** (`subscribe_pr_activity` or the
   forge's equivalent). The armed Routine already covers re-entry;
-  the subscription only echoes boilerplate into context.
+  the subscription only echoes boilerplate into context. The harness
+  auto-subscribes on CR creation regardless — undo it immediately
+  after each CR is opened (dispatch step 4).
 - **Batch independent reads into one turn** — all ticket reads
   together, all CR/CI checks together. One tool call per turn is the
   expensive way to walk a frontier.
