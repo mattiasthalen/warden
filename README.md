@@ -1,6 +1,6 @@
 ![Warden](docs/assets/hero.png)
 
-A ticket-patrolling agent for Claude Code, built for cloud sessions. Summoned with `/warden:patrol`, the warden walks **rounds** over your issue tracker's frontier: it claims agent-ready tickets, dispatches implementer subagents into fresh worktrees, babysits the resulting draft change requests through CI, and applies your repo's **ready gate** when they go green — then arms the next round and waits.
+A ticket-patrolling agent for Claude Code, built for cloud sessions. Summoned with `/warden:summon`, the warden walks **rounds** over your issue tracker's frontier: it claims agent-ready tickets, dispatches implementer subagents into fresh worktrees, babysits the resulting draft change requests through CI, and applies your repo's **ready gate** when they go green — then arms the next round and waits.
 
 Built on [Matt Pocock's engineering skills](https://github.com/mattpocock/skills): the warden dispatches `/implement` and `/code-review`, and speaks the same triage-role vocabulary and `docs/agents/*` config layout.
 
@@ -22,12 +22,12 @@ In each repo you want patrolled, run `/warden:setup`. It runs Matt's setup for t
 
 ## Use
 
-- `/warden:patrol` — patrol until told to stand down (repo inferred from the current clone's origin remote)
-- `/warden:patrol <owner>/<repo>` — patrol that repo explicitly; required when summoning outside a clone
-- `/warden:patrol once` — walk one round, report, stop
-- `/warden:patrol merge` — override the ready gate to `merge` for this patrol only
+- `/warden:summon` — hire the warden: arms the patrol, which walks rounds until told to stand down (repo inferred from the current clone's origin remote)
+- `/warden:summon <owner>/<repo>` — summon for that repo explicitly; required when summoning outside a clone
+- `/warden:summon merge` — override the ready gate to `merge`; summons args are baked into the patrol and repeat every round
+- `/warden:patrol once` — walk one attended round in this session, report, stop
 
-Summon the warden from a [cloud session](https://code.claude.com/docs/en/claude-code-on-the-web) (started from the web, desktop, or mobile app): the patrol keeps walking rounds after you close the tab and push-notifies you when a change request needs your eyes. A local CLI session works too — the patrol just stands down when the session ends.
+Summon the warden from a [cloud session](https://code.claude.com/docs/en/claude-code-on-the-web) (started from the web, desktop, or mobile app): the patrol keeps walking rounds after you close the tab and push-notifies you when a change request needs your eyes. Routines don't exist in the local CLI, so there `/warden:patrol once` is the only mode that works.
 
 The warden only consumes tickets carrying the agent-ready triage role — `/triage` (from mattpocock-skills) produces them.
 
